@@ -23,7 +23,7 @@ class CenterDetector(Chain):
 
 
 class CenterDetectorTrain(Chain):
-    def __init__(self, base_network, hm_weight, wh_weight, offest_weight):
+    def __init__(self, center_detector, hm_weight, wh_weight, offest_weight):
         super().__init__()
 
         self.hm_weight = hm_weight
@@ -31,9 +31,9 @@ class CenterDetectorTrain(Chain):
         self.offset_weight = offest_weight
 
         with self.init_scope():
-            self.base_network = base_network
+            self.center_detector = center_detector
 
     def forward(self, x, gts):
-        y = self.base_network(x)
+        y = self.center_detector(x)
         loss = center_detection_loss(y, gts, self.hm_weight, self.wh_weight, self.offset_weight)
         return loss
