@@ -102,7 +102,7 @@ class CenterDetectorTrain(Chain):
         with self.init_scope():
             self.center_detector = center_detector
 
-    def forward(self, indata):
+    def forward(self, **indata):
         imgs = indata['image']
         y = self.center_detector(imgs)
         loss = center_detection_loss(y, indata, self.hm_weight, self.wh_weight, self.offset_weight)

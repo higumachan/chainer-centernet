@@ -5,7 +5,7 @@ from chainer.datasets import TransformDataset
 from chainer.iterators import MultiprocessIterator
 from chainer.optimizers import Adam
 from chainer.training import StandardUpdater, Trainer
-from chainercv.datasets import COCOBboxDataset
+from chainercv.datasets import COCOBboxDataset, VOCBboxDataset, voc_bbox_label_names
 from chainercv.extensions import DetectionVOCEvaluator
 
 from centernet.datasets.transforms import CenterDetectionTransform
@@ -19,12 +19,12 @@ def main():
     parser.add_argument('--batchsize', type=int, default=10)
     args = parser.parse_args()
 
-    num_class = 50
+    num_class = len(voc_bbox_label_names)
 
-    dataset = COCOBboxDataset()
+    dataset = VOCBboxDataset()
     dataset = TransformDataset(dataset, CenterDetectionTransform(512, num_class, 4))
 
-    detector = CenterDetector(HourglassNet, num_class)
+    detector = CenterDetector(HourglassNet, 512, num_class)
     train_chain = CenterDetectorTrain(detector, 1, 0.1, 1)
 
     if args.gpu >= 0:
