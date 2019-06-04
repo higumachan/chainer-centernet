@@ -50,3 +50,24 @@ def draw_umich_gaussian(heatmap, center, radius, k=1):
     if min(masked_gaussian.shape) > 0 and min(masked_heatmap.shape) > 0:  # TODO debug
         np.maximum(masked_heatmap, masked_gaussian * k, out=masked_heatmap)
     return heatmap
+
+
+def find_peak(map, x, y):
+    dx = np.array([-1,  0,  1, 0, -1,  1, -1, 0, 1])
+    dy = np.array([-1, -1, -1, 0,  0,  0,  1, 1, 1])
+    while True:
+        nx = np.minimum(np.maximum(x + dx, 0), map.shape[1] - 1)
+        ny = np.minimum(np.maximum(y + dy, 0), map.shape[0] - 1)
+
+        max_idx = np.argmax(map[ny, nx])
+
+        if x == nx[max_idx] and y == ny[max_idx]:
+            break
+        x = nx[max_idx]
+        y = ny[max_idx]
+    return x, y
+
+
+if __name__ == '__main__':
+    assert find_peak(np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]]), 0, 0) == (1, 1)
+    assert find_peak(np.array([[0, 2, 0], [0, 1, 0], [0, 0, 0]]), 1, 1) == (1, 0)

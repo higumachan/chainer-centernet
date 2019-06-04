@@ -1,12 +1,14 @@
 import argparse
 
 import chainer
+from chainer.datasets import TransformDataset
 from chainer.iterators import MultiprocessIterator
 from chainer.optimizers import Adam
 from chainer.training import StandardUpdater, Trainer
 from chainercv.datasets import COCOBboxDataset
+from chainercv.extensions import DetectionVOCEvaluator
 
-from centernet.datasets.transforms import CenterDetectionDataset
+from centernet.datasets.transforms import CenterDetectionTransform
 from centernet.models.center_detector import CenterDetector, CenterDetectorTrain
 from centernet.models.networks.hourglass import HourglassNet
 
@@ -17,11 +19,12 @@ def main():
     parser.add_argument('--batchsize', type=int, default=10)
     args = parser.parse_args()
 
+    num_class = 50
 
-    base_dataset = COCOBboxDataset()
-    dataset = CenterDetectionDataset(base_dataset)
+    dataset = COCOBboxDataset()
+    dataset = TransformDataset(dataset, CenterDetectionTransform(512, num_class, 4))
 
-    detector = CenterDetector(HourglassNet, len(base_dataset.cat_ids))
+    detector = CenterDetector(HourglassNet, num_class)
     train_chain = CenterDetectorTrain(detector, 1, 0.1, 1)
 
     if args.gpu >= 0:
