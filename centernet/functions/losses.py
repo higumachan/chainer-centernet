@@ -68,11 +68,11 @@ def reg_loss(output, mask, target):
     return F.sum(ae * mask) / (F.sum(F.cast(mask, np.float32)) + EPS)
 
 
-def center_detection_loss(outputs, inputs, hm_weight, wh_weight, offset_weight):
+def center_detection_loss(outputs, gts, hm_weight, wh_weight, offset_weight):
     """
 
     :param outputs: list of dict of str, np.array(N, dim, H, W)
-    :param inputs: dict of str, (N, dim, H, W)
+    :param gts: dict of str, (N, dim, H, W)
     :param mask: (N, dim, H, W)
     :return:
     """
@@ -81,13 +81,13 @@ def center_detection_loss(outputs, inputs, hm_weight, wh_weight, offset_weight):
     for output in outputs:
         output['hm'] = F.sigmoid(output['hm'])
 
-        hm_loss += focial_loss(output['hm'], inputs['hm']) / len(outputs)
+        hm_loss += focial_loss(output['hm'], gts['hm']) / len(outputs)
 
         if wh_weight > 0.0:
-            wh_loss += reg_loss(output['wh'] * inputs['dense_wh_mask']) / len(outputs)
+            wh_loss += reg_loss(output['wh'], gts['dense_mask'], gts['dense_wh']) / len(outputs)
 
         if offset_weight > 0.0:
-            assert False
+            offset_loss += reg_loss(output['offset'], gts['dense_mask'], gts['dense_offset']) / len(outputs)
 
     loss = hm_weight * hm_loss + wh_weight * wh_loss + offset_weight * offset_loss
 

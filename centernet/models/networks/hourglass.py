@@ -183,7 +183,7 @@ class ExKp(Chain):
                 self.__setattr__(head, c)
             else:
                 c = ChainList(*[
-                    make_regr_layer(conv_dim, curr_dim, heads[head])  for _ in range(nstack)
+                    make_regr_layer(conv_dim, curr_dim, heads[head]) for _ in range(nstack)
                 ])
                 self.__setattr__(head, c)
 
