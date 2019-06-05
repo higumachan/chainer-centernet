@@ -1,10 +1,10 @@
 import argparse
 
 import chainer
-from chainer.datasets import TransformDataset
+from chainer.datasets import TransformDataset, ConcatenatedDataset
 from chainer.iterators import MultiprocessIterator
 from chainer.optimizers import Adam
-from chainer.training import StandardUpdater, Trainer, extensions
+from chainer.training import StandardUpdater, Trainer, extensions, triggers
 from chainercv.datasets import COCOBboxDataset, VOCBboxDataset, voc_bbox_label_names
 from chainercv.extensions import DetectionVOCEvaluator
 
@@ -21,8 +21,22 @@ def main():
 
     num_class = len(voc_bbox_label_names)
 
-    dataset = VOCBboxDataset()
-    dataset = TransformDataset(dataset, CenterDetectionTransform(512, num_class, 4))
+    center_detection_transform = CenterDetectionTransform(512, num_class, 4)
+
+    train = TransformDataset(
+        ConcatenatedDataset(
+            VOCBboxDataset(year='2007', split='trainval'),
+            VOCBboxDataset(year='2012', split='trainval')
+        ),
+        center_detection_transform
+    )
+    train_iter = chainer.iterators.MultiprocessIterator(train, args.batchsize)
+
+    test = VOCBboxDataset(
+        year='2007', split='test',
+        use_difficult=True, return_difficult=True)
+    test_iter = chainer.iterators.SerialIterator(
+        test, args.batchsize, repeat=False, shuffle=False)
 
     detector = CenterDetector(HourglassNet, 512, num_class)
     train_chain = CenterDetectorTrain(detector, 1, 0.1, 1)
@@ -34,7 +48,6 @@ def main():
     optimizer = Adam()
     optimizer.setup(train_chain)
 
-    train_iter = MultiprocessIterator(dataset, args.batchsize, n_processes=4)
     updater = StandardUpdater(train_iter, optimizer, device=args.gpu)
 
     log_interval = 100, 'iteration'
@@ -45,6 +58,12 @@ def main():
         ['epoch', 'iteration', 'lr', 'main/loss', 'main/hm_loss', 'main/wh_loss', 'main/offset_loss']),
         trigger=log_interval)
     trainer.extend(extensions.ProgressBar(update_interval=10))
+    trainer.extend(
+        DetectionVOCEvaluator(
+            test_iter, detector, use_07_metric=True,
+            label_names=voc_bbox_label_names),
+        trigger=triggers.ManualScheduleTrigger(
+            args.step + [args.iteration], 'iteration'))
 
     trainer.run()
 
