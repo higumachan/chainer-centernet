@@ -1,6 +1,6 @@
 import chainer
 import numpy as np
-from chainer import Chain, Variable
+from chainer import Chain, Variable, reporter
 from typing import Callable, Dict
 
 from chainer.links import Classifier
@@ -104,5 +104,10 @@ class CenterDetectorTrain(Chain):
     def forward(self, **indata):
         imgs = indata['image']
         y = self.center_detector(imgs)
-        loss = center_detection_loss(y, indata, self.hm_weight, self.wh_weight, self.offset_weight)
+        loss, hm_loss, wh_loss, offset_loss = center_detection_loss(y, indata, self.hm_weight, self.wh_weight, self.offset_weight)
+        reporter.report({
+            'hm_loss': hm_loss,
+            'wh_loss': wh_loss,
+            'offset_loss': offset_loss
+        }, self)
         return loss

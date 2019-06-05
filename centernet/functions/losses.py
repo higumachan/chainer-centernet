@@ -67,7 +67,7 @@ def center_detection_loss(outputs, gts, hm_weight, wh_weight, offset_weight):
 
     loss = hm_weight * hm_loss + wh_weight * wh_loss + offset_weight * offset_loss
 
-    return loss
+    return loss, hm_loss, wh_loss, offset_loss
 
 
 if __name__ == '__main__':
