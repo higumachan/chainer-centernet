@@ -63,7 +63,7 @@ def main():
             test_iter, detector, use_07_metric=True,
             label_names=voc_bbox_label_names),
         trigger=triggers.ManualScheduleTrigger(
-            args.step + [args.iteration], 'iteration'))
+            100, 'iteration'))
 
     trainer.run()
 
