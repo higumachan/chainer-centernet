@@ -38,8 +38,6 @@ def reg_loss(output, mask, target, comm=None):
     :return:
     """
 
-
-
     ae = F.absolute_error(output, target)
     n_pos = mask.sum()
 
