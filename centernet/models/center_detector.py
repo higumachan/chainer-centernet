@@ -94,12 +94,13 @@ class CenterDetector(Chain):
 
 
 class CenterDetectorTrain(Chain):
-    def __init__(self, center_detector, hm_weight, wh_weight, offest_weight):
+    def __init__(self, center_detector, hm_weight, wh_weight, offest_weight, comm=None):
         super().__init__()
 
         self.hm_weight = hm_weight
         self.wh_weight = wh_weight
         self.offset_weight = offest_weight
+        self.comm = comm
 
         with self.init_scope():
             self.center_detector = center_detector
@@ -107,7 +108,10 @@ class CenterDetectorTrain(Chain):
     def forward(self, **indata):
         imgs = indata['image']
         y = self.center_detector(imgs)
-        loss, hm_loss, wh_loss, offset_loss = center_detection_loss(y, indata, self.hm_weight, self.wh_weight, self.offset_weight)
+        loss, hm_loss, wh_loss, offset_loss = center_detection_loss(
+            y, indata,
+            self.hm_weight, self.wh_weight, self.offset_weight, comm=self.comm
+        )
         reporter.report({
             'loss': loss,
             'hm_loss': hm_loss,
