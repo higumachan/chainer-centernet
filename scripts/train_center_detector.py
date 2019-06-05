@@ -52,7 +52,7 @@ def main():
         chainer.cuda.get_device_from_id(args.gpu).use()
         train_chain.to_gpu(args.gpu)
 
-    optimizer = Adam()
+    optimizer = Adam(amsgrad=True)
     optimizer.setup(train_chain)
 
     updater = StandardUpdater(train_iter, optimizer, device=args.gpu)
