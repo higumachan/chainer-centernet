@@ -56,7 +56,7 @@ class CenterDetector(Chain):
         bboxes = []
         labels = []
         scores = []
-        for j in range(self.num_class):
+        for j in range(self.num_classes):
             hm = output['hm'][index, j]
             hm.to_cpu()
             hm = hm.data  # type: np.ndarray
