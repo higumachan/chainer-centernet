@@ -57,9 +57,8 @@ class CenterDetector(Chain):
         labels = []
         scores = []
         for j in range(self.num_classes):
-            hm = output['hm'][index, j]
-            hm.to_cpu()
-            hm = hm.array
+            output['hm'].to_cpu()
+            hm = output['hm'].array[index, j]
 
             indices = np.argsort(hm.flatten())[::-1][:k]
             for index in indices:
@@ -68,7 +67,7 @@ class CenterDetector(Chain):
                 peak_x, peak_y = find_peak(hm, x, y)
 
                 x, y, w, h = self._decode_bbox(output, peak_x, peak_y, index)
-                bboxes.append([x, y, x + w, y + h])
+                bboxes.append([y, x, y + h, x + w])
                 labels.append(j)
                 scores.append(hm[y, x])
         return np.array(bboxes), np.array(labels), np.array(scores)
