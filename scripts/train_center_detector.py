@@ -9,7 +9,7 @@ from chainer.training import StandardUpdater, Trainer, extensions, triggers
 from chainercv.datasets import COCOBboxDataset, VOCBboxDataset, voc_bbox_label_names
 from chainercv.extensions import DetectionVOCEvaluator
 
-from centernet.datasets.transforms import CenterDetectionTransform
+from centernet.datasets.transforms import CenterDetectionTransform, DataAugmentationTransform
 from centernet.models.center_detector import CenterDetector, CenterDetectorTrain
 from centernet.models.networks.hourglass import HourglassNet
 
@@ -24,6 +24,7 @@ def main():
 
     num_class = len(voc_bbox_label_names)
 
+    data_augmentation_transform = DataAugmentationTransform(512)
     center_detection_transform = CenterDetectionTransform(512, num_class, 4)
 
     train = TransformDataset(
@@ -31,8 +32,9 @@ def main():
             VOCBboxDataset(year='2007', split='trainval'),
             VOCBboxDataset(year='2012', split='trainval')
         ),
-        center_detection_transform
+        data_augmentation_transform
     )
+    train = TransformDataset(train, center_detection_transform)
     if args.mini:
         train = datasets.SubDataset(train, 0, 100)
     train_iter = chainer.iterators.MultiprocessIterator(train, args.batchsize)

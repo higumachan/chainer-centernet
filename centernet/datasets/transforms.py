@@ -12,8 +12,8 @@ from centernet.utilities import gaussian_radius, draw_umich_gaussian
 
 
 class DataAugmentationTransform:
-    def __init__(self, coder, size, mean):
-        pass
+    def __init__(self, size):
+        self.size = size
 
     def __call__(self, in_data):
         # There are five data augmentation steps
@@ -31,7 +31,7 @@ class DataAugmentationTransform:
         # 2. Random expansion
         if np.random.randint(2):
             img, param = transforms.random_expand(
-                img, fill=self.mean, return_param=True)
+                img, fill=0, return_param=True)
             bbox = transforms.translate_bbox(
                 bbox, y_offset=param['y_offset'], x_offset=param['x_offset'])
 
@@ -118,6 +118,21 @@ if __name__ == '__main__':
     transform = CenterDetectionTransform(512, 100, 4)
     print(dataset[0])
     data = transform(dataset[0])
+
+    for cls in range(100):
+        if data['hm'][cls].sum() > 0:
+            plt.imshow(data['image'].transpose((1, 2, 0)).astype(np.uint8))
+            print(data['hm'].shape)
+            plt.imshow(cv2.resize(data['hm'][cls], (512, 512)), alpha=0.8, cmap=plt.cm.jet)
+            plt.colorbar()
+            plt.show()
+
+        dataset = VOCBboxDataset()
+
+    transform = CenterDetectionTransform(512, 100, 4)
+    dat = DataAugmentationTransform(512)
+    print(dataset[0])
+    data = transform(dat(dataset[0]))
 
     for cls in range(100):
         if data['hm'][cls].sum() > 0:
