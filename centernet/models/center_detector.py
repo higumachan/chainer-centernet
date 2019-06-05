@@ -60,14 +60,16 @@ class CenterDetector(Chain):
             output['hm'].to_cpu()
             hm = output['hm'].array[index, j]
 
-            indices = np.argsort(hm.flatten())[::-1][:k]
-            for index in indices:
-                x = index % hm.shape[1]
-                y = index // hm.shape[1]
+            pos_indices = np.argsort(hm.flatten())[::-1][:k]
+            #print(f"----class {j}----")
+            for pos_index in pos_indices:
+                x = pos_index % hm.shape[1]
+                y = pos_index // hm.shape[1]
+                #print(f"hm value={hm[y, x]}")
                 peak_x, peak_y = find_peak(hm, x, y)
 
-                x, y, w, h = self._decode_bbox(output, peak_x, peak_y, index)
-                bboxes.append([y, x, y + h, x + w])
+                adjusted_x, adjusted_y, w, h = self._decode_bbox(output, peak_x, peak_y, index)
+                bboxes.append([adjusted_y, adjusted_x, y + h, x + w])
                 labels.append(j)
                 scores.append(hm[y, x])
         return np.array(bboxes), np.array(labels), np.array(scores)
@@ -113,3 +115,21 @@ class CenterDetectorTrain(Chain):
             'offset_loss': offset_loss
         }, self)
         return loss
+
+
+if __name__ == '__main__':
+    from centernet.datasets.transforms import CenterDetectionTransform
+    from chainercv.datasets import VOCBboxDataset
+    from chainer.datasets import TransformDataset
+    from chainer.dataset import concat_examples
+    from centernet.models.networks.hourglass import HourglassNet
+
+    center_detection_transform = CenterDetectionTransform(512, 5, 4)
+
+    train = VOCBboxDataset(year='2012', split='trainval')
+
+    x = concat_examples([train[0]])
+
+    print(x[0].shape)
+    detector = CenterDetector(HourglassNet, 512, 5)
+    print(detector.predict(x[0]))
