@@ -79,4 +79,5 @@ if __name__ == '__main__':
             plt.imshow(data['image'].transpose((1, 2, 0)).astype(np.uint8))
             print(data['hm'].shape)
             plt.imshow(cv2.resize(data['hm'][cls], (512, 512)), alpha=0.8, cmap=plt.cm.jet)
+            plt.colorbar()
             plt.show()

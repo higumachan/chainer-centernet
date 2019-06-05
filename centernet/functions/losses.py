@@ -4,11 +4,11 @@ import numpy as np
 
 EPS = 2e-05
 
-def focial_loss(pred, gt, alpha=2, beta=4):
+def focial_loss(pred, gt, alpha=2, gamma=4):
     pos_indices = gt >= 1
     neg_indices = gt < 1
 
-    neg_weights = pow(1 - gt, beta)
+    neg_weights = pow(1 - gt, gamma)
 
     loss = 0
 

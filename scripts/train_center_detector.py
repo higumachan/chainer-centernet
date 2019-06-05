@@ -37,7 +37,7 @@ def main():
     train_iter = MultiprocessIterator(dataset, args.batchsize)
     updater = StandardUpdater(train_iter, optimizer, device=args.gpu)
 
-    trainer = Trainer(updater, (3, 'iteration'))
+    trainer = Trainer(updater, (12000, 'iteration'))
 
     trainer.run()
 
