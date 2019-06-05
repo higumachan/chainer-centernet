@@ -4,7 +4,7 @@ import chainer
 from chainer.datasets import TransformDataset
 from chainer.iterators import MultiprocessIterator
 from chainer.optimizers import Adam
-from chainer.training import StandardUpdater, Trainer
+from chainer.training import StandardUpdater, Trainer, extensions
 from chainercv.datasets import COCOBboxDataset, VOCBboxDataset, voc_bbox_label_names
 from chainercv.extensions import DetectionVOCEvaluator
 
@@ -37,7 +37,14 @@ def main():
     train_iter = MultiprocessIterator(dataset, args.batchsize)
     updater = StandardUpdater(train_iter, optimizer, device=args.gpu)
 
+    log_interval = 100, 'iteration'
     trainer = Trainer(updater, (12000, 'iteration'))
+    trainer.extend(extensions.LogReport(trigger=log_interval))
+    trainer.extend(extensions.observe_lr(), trigger=log_interval)
+    trainer.extend(extensions.PrintReport(
+        ['epoch', 'iteration', 'lr', 'main/loss']),
+        trigger=log_interval)
+    trainer.extend(extensions.ProgressBar(update_interval=10))
 
     trainer.run()
 
