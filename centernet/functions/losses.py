@@ -73,7 +73,9 @@ def center_detection_loss(outputs, gts, hm_weight, wh_weight, offset_weight):
 
     :param outputs: list of dict of str, np.array(N, dim, H, W)
     :param gts: dict of str, (N, dim, H, W)
-    :param mask: (N, dim, H, W)
+    :param hm_weight:
+    :param wh_weight:
+    :param offset_weight:
     :return:
     """
 

@@ -16,7 +16,7 @@ from centernet.models.networks.hourglass import HourglassNet
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--gpu', type=int, default=-1)
-    parser.add_argument('--batchsize', type=int, default=10)
+    parser.add_argument('--batchsize', type=int, default=2)
     args = parser.parse_args()
 
     num_class = len(voc_bbox_label_names)

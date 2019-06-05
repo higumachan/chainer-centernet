@@ -26,10 +26,9 @@ class CenterDetector(Chain):
 
     def forward(self, x):
         y = self.base_network(x)
-        return y[-1]
+        return y
 
     def predict(self, imgs, k=100):
-
         x = []
         sizes = []
         for img in imgs:
