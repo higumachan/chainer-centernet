@@ -34,7 +34,7 @@ def main():
     optimizer = Adam()
     optimizer.setup(train_chain)
 
-    train_iter = MultiprocessIterator(dataset, args.batchsize)
+    train_iter = MultiprocessIterator(dataset, args.batchsize, n_processes=4)
     updater = StandardUpdater(train_iter, optimizer, device=args.gpu)
 
     log_interval = 100, 'iteration'
