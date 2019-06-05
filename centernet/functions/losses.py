@@ -15,7 +15,7 @@ def focial_loss(pred, gt, alpha=2, gamma=4):
     pos_loss = F.log(pred + EPS) * pow(1 - pred, alpha) * pos_indices
     neg_loss = F.log(1 - pred + EPS) * pow(pred, alpha) * neg_weights * neg_indices
 
-    num_pos = F.sum(F.cast(pos_indices, np.float32))
+    num_pos = pos_indices.sum()
     pos_loss = F.sum(pos_loss)
     neg_loss = F.sum(neg_loss)
 
@@ -25,33 +25,6 @@ def focial_loss(pred, gt, alpha=2, gamma=4):
         loss = loss - (pos_loss + neg_loss) / num_pos
 
     return loss
-
-
-def _gather_feat(feat, ind, mask=None):
-    dim = feat.shape[2]
-    ind = F.repeat(F.expand_dims(ind, 2), dim, axis=2)
-    feat = F.select_item(feat, ind)
-
-def _transpose_and_gather_feat(feat, ind):
-    feat = F.transpose(feat, (0, 2, 3, 1))
-    shape = feat.shape
-    feat = F.reshape(feat, (shape[0], -1, shape[3]))
-    feat = _gather_feat(feat, ind)
-
-    return feat
-
-
-def _reg_loss(regr, gt_regr, mask):
-    num = F.cast(mask.sum(), np.float32)
-    mask = F.cast(F.repeat(F.expand_dims(mask, 2), gt_regr.shape[2], axis=2), np.float32)
-
-    regr = regr * mask
-    gt_regr = gt_regr * mask
-
-    regr_loss = F.huber_loss(regr, gt_regr, 1.0)
-    regr_loss = regr_loss / (num + 1e-4)
-
-    return regr_loss
 
 
 def reg_loss(output, mask, target):
@@ -64,8 +37,9 @@ def reg_loss(output, mask, target):
     """
 
     ae = F.absolute_error(output, target)
+    n_pos = mask.sum()
 
-    return F.sum(ae * mask) / (F.sum(F.cast(mask, np.float32)) + EPS)
+    return F.sum(ae * mask) / (n_pos + EPS)
 
 
 def center_detection_loss(outputs, gts, hm_weight, wh_weight, offset_weight):
