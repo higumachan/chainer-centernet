@@ -65,13 +65,13 @@ def center_detection_loss(outputs, gts, hm_weight, wh_weight, offset_weight, com
     for output in outputs:
         output['hm'] = F.sigmoid(output['hm'])
 
-        hm_loss += focial_loss(output['hm'], gts['hm'], comm) / len(outputs)
+        hm_loss += focial_loss(output['hm'], gts['hm'], comm=comm) / len(outputs)
 
         if wh_weight > 0.0:
-            wh_loss += reg_loss(output['wh'], gts['dense_mask'], gts['dense_wh'], comm) / len(outputs)
+            wh_loss += reg_loss(output['wh'], gts['dense_mask'], gts['dense_wh'], comm=comm) / len(outputs)
 
         if offset_weight > 0.0:
-            offset_loss += reg_loss(output['offset'], gts['dense_mask'], gts['dense_offset'], comm) / len(outputs)
+            offset_loss += reg_loss(output['offset'], gts['dense_mask'], gts['dense_offset'], comm=comm) / len(outputs)
 
     loss = hm_weight * hm_loss + wh_weight * wh_loss + offset_weight * offset_loss
 
