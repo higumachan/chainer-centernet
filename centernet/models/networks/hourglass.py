@@ -146,7 +146,7 @@ class ExKp(Chain):
                  make_unpool_layers = make_unpool_layers,
                  make_inter_layer = make_inter_layers,
                  kp_layer = Residual,
-     ):
+    ):
         super().__init__()
 
         self.nstack = nstack
@@ -154,38 +154,39 @@ class ExKp(Chain):
 
         curr_dim = dims[0]
 
-        self.pre = Sequential(
-            conv_bn_relu(7, 3, 128, stride=2),
-            Residual(3, 128, 256, stride=2)
-        ) if pre is None else pre
+        with self.init_scope():
+            self.pre = Sequential(
+                conv_bn_relu(7, 3, 128, stride=2),
+                Residual(3, 128, 256, stride=2)
+            ) if pre is None else pre
 
-        self.kps = ChainList(*[KpChain(n, dims, modules, make_hg_layers=make_hg_layers) for _ in range(nstack)])
-        self.convs = ChainList(*[make_conv_layers(curr_dim, conv_dim) for _ in range(nstack)])
-        self.inters = ChainList(*[make_inter_layer(curr_dim) for _ in range(nstack - 1)])
-        self.inters_ = ChainList(
-            *[Sequential(
-                L.Convolution2D(curr_dim, curr_dim, (1, 1), nobias=True),
-                L.BatchNormalization(curr_dim),
-            ) for _ in range(nstack - 1)]
-        )
-        self.convs_ = ChainList(*[
-            *[Sequential(
-                L.Convolution2D(conv_dim, curr_dim, (1, 1), nobias=True),
-                L.BatchNormalization(curr_dim),
-            ) for _ in range(nstack - 1)]
-        ])
+            self.kps = ChainList(*[KpChain(n, dims, modules, make_hg_layers=make_hg_layers) for _ in range(nstack)])
+            self.convs = ChainList(*[make_conv_layers(curr_dim, conv_dim) for _ in range(nstack)])
+            self.inters = ChainList(*[make_inter_layer(curr_dim) for _ in range(nstack - 1)])
+            self.inters_ = ChainList(
+                *[Sequential(
+                    L.Convolution2D(curr_dim, curr_dim, (1, 1), nobias=True),
+                    L.BatchNormalization(curr_dim),
+                ) for _ in range(nstack - 1)]
+            )
+            self.convs_ = ChainList(*[
+                *[Sequential(
+                    L.Convolution2D(conv_dim, curr_dim, (1, 1), nobias=True),
+                    L.BatchNormalization(curr_dim),
+                ) for _ in range(nstack - 1)]
+            ])
 
-        for head in heads.keys():
-            if 'hm' in head:
-                c = ChainList(*[
-                    make_heat_layer(conv_dim, curr_dim, heads[head]) for _ in range(nstack)
-                ])
-                self.__setattr__(head, c)
-            else:
-                c = ChainList(*[
-                    make_regr_layer(conv_dim, curr_dim, heads[head]) for _ in range(nstack)
-                ])
-                self.__setattr__(head, c)
+            for head in heads.keys():
+                if 'hm' in head:
+                    c = ChainList(*[
+                        make_heat_layer(conv_dim, curr_dim, heads[head]) for _ in range(nstack)
+                    ])
+                    self.__setattr__(head, c)
+                else:
+                    c = ChainList(*[
+                        make_regr_layer(conv_dim, curr_dim, heads[head]) for _ in range(nstack)
+                    ])
+                    self.__setattr__(head, c)
 
     def forward(self, x):
         inter = self.pre(x)
