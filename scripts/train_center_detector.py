@@ -77,7 +77,7 @@ def main():
             label_names=voc_bbox_label_names),
         trigger=(1, 'epoch'))
     trainer.extend(
-        extensions.snapshot_object(detector, 'detector{.updator.epoch:03}.npz'),
+        extensions.snapshot_object(detector, 'detector{.updater.epoch:03}.npz'),
         trigger=(1, 'epoch')
     )
 
