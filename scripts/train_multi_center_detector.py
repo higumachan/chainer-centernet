@@ -54,7 +54,7 @@ def main():
         if args.mini:
             train = datasets.SubDataset(train, 0, 100)
     else:
-        indices = None
+        train = None
     train = chainermn.scatter_dataset(train, comm, shuffle=True)
     train_iter = chainer.iterators.MultiprocessIterator(
         train, args.batchsize // comm.size, n_processes=2)
