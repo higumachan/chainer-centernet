@@ -48,16 +48,14 @@ def main():
         ),
         data_augmentation_transform
     )
-    train = TransformDataset(train, center_detection_transform)
-    if args.mini:
-        train = datasets.SubDataset(train, 0, 100)
 
     if comm.rank == 0:
-        indices = numpy.arange(len(train))
+        train = TransformDataset(train, center_detection_transform)
+        if args.mini:
+            train = datasets.SubDataset(train, 0, 100)
     else:
         indices = None
-    indices = chainermn.scatter_dataset(indices, comm, shuffle=True)
-    train = train.slice[indices]
+    train = chainermn.scatter_dataset(train, comm, shuffle=True)
     train_iter = chainer.iterators.MultiprocessIterator(
         train, args.batchsize // comm.size, n_processes=2)
 
