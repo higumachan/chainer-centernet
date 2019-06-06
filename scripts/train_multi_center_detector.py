@@ -52,7 +52,7 @@ def main():
     if args.mini:
         train = datasets.SubDataset(train, 0, 100)
 
-    if comm.rand == 0:
+    if comm.rank == 0:
         indices = numpy.arange(len(train))
     else:
         indices = None
