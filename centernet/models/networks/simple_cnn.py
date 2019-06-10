@@ -11,8 +11,8 @@ class SimpleCNN(Chain):
         with self.init_scope():
             self.cnn1 = conv_bn_relu(3, 3, 32, 2)
             self.cnn2 = conv_bn_relu(3, 32, 64, 2)
-            self.cnn3 = conv_bn_relu(3, 64, 64, 1)
-            self.cnn4 = conv_bn_relu(3, 64, 64, 1)
+            self.cnn3 = conv_bn_relu(3, 64, 64, 1).repeat(3)
+            self.cnn4 = conv_bn_relu(3, 64, 64, 1).repeat(3)
 
             for head in heads:
                 self.__setattr__(head, conv_bn_relu(3, 64, heads[head]))
