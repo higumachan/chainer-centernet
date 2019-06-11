@@ -6,7 +6,7 @@ EPS = 2e-05
 
 
 def focial_loss(pred, gt, alpha=2, beta=4, comm=None):
-    th = 0.5
+    th = 1
     pos_indices = gt >= th
     neg_indices = gt < th
 
