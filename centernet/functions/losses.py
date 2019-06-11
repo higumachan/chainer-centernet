@@ -48,7 +48,16 @@ def reg_loss(output, mask, target, comm=None):
     return F.sum(ae * mask) / (n_pos + EPS)
 
 
-def center_detection_loss(outputs, gts, hm_weight, wh_weight, offset_weight, comm=None):
+def center_detection_loss(
+        outputs,
+        gts,
+        hm_weight,
+        wh_weight,
+        offset_weight,
+        focial_loss_alpha=2,
+        focial_loss_beta=4,
+        comm=None
+):
     """
 
     :param outputs: list of dict of str, np.array(N, dim, H, W)
@@ -64,7 +73,7 @@ def center_detection_loss(outputs, gts, hm_weight, wh_weight, offset_weight, com
     for output in outputs:
         output['hm'] = F.sigmoid(output['hm'])
 
-        t_hm, t_pos, t_neg = focial_loss(output['hm'], gts['hm'], comm=comm)
+        t_hm, t_pos, t_neg = focial_loss(output['hm'], gts['hm'], alpha=focial_loss_alpha, beta=focial_loss_beta, comm=comm)
         hm_loss += t_hm / len(outputs)
         hm_pos_loss += t_pos / len(outputs)
         hm_neg_loss += t_neg / len(outputs)

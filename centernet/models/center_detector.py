@@ -95,7 +95,15 @@ class CenterDetector(Chain):
 
 
 class CenterDetectorTrain(Chain):
-    def __init__(self, center_detector, hm_weight, wh_weight, offest_weight, comm=None):
+    def __init__(self,
+                 center_detector,
+                 hm_weight,
+                 wh_weight,
+                 offest_weight,
+                 focial_loss_alpha=2,
+                 focial_loss_beta=4,
+                 comm=None
+                 ):
         super().__init__()
 
         self.hm_weight = hm_weight
