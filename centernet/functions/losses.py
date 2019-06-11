@@ -6,8 +6,9 @@ EPS = 2e-05
 
 
 def focial_loss(pred, gt, alpha=2, beta=4, comm=None):
-    pos_indices = gt >= 1
-    neg_indices = gt < 1
+    th = 0.5
+    pos_indices = gt >= th
+    neg_indices = gt < th
 
     neg_weights = (1 - gt) ** beta
 
