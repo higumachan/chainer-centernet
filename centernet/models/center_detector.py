@@ -3,6 +3,7 @@ import numpy as np
 from chainer import Chain, Variable, reporter
 from typing import Callable, Dict
 
+import chainer.functions as F
 from chainer.links import Classifier
 from chainercv import transforms
 from chainercv.links import SSD512
@@ -112,9 +113,12 @@ class CenterDetectorTrain(Chain):
             y, indata,
             self.hm_weight, self.wh_weight, self.offset_weight, comm=self.comm
         )
+        hm = y[-1]["hm"]
+        hm_mae = F.mean_absolute_error(hm, indata["hm"])
         reporter.report({
             'loss': loss,
             'hm_loss': hm_loss,
+            'hm_mae': hm_mae,
             'wh_loss': wh_loss,
             'offset_loss': offset_loss
         }, self)
