@@ -15,7 +15,7 @@ def focial_loss(pred, gt, alpha=2, beta=4, comm=None):
     pos_loss = F.log(pred + EPS) * (1 - pred) ** alpha * pos_indices
     neg_loss = F.log(1 - pred + EPS) * pred ** alpha * neg_weights * neg_indices
 
-    num_pos = pos_indices.sum()
+    num_pos = (gt >= 1).sum()
     pos_loss = F.sum(pos_loss)
     neg_loss = F.sum(neg_loss)
 
