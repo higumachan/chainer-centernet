@@ -1,3 +1,4 @@
+import chainer
 import numpy as np
 import math
 
@@ -8,6 +9,7 @@ from chainercv.datasets.voc import voc_utils
 from chainercv.links.model.ssd import random_distort, random_crop_with_bbox_constraints, \
     resize_with_random_interpolation
 
+from centernet.functions.losses import focial_loss
 from centernet.utilities import gaussian_radius, draw_umich_gaussian
 
 
@@ -141,3 +143,5 @@ if __name__ == '__main__':
             plt.imshow(cv2.resize(data['hm'][cls], (512, 512)), alpha=0.8, cmap=plt.cm.jet)
             plt.colorbar()
             plt.show()
+
+    print(focial_loss(chainer.functions.sigmoid((data['hm'] - 0.5) * 10), data['hm']))
