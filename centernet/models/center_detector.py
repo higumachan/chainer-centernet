@@ -109,7 +109,7 @@ class CenterDetectorTrain(Chain):
     def forward(self, **indata):
         imgs = indata['image']
         y = self.center_detector(imgs)
-        loss, hm_loss, wh_loss, offset_loss = center_detection_loss(
+        loss, hm_loss, wh_loss, offset_loss, detail_losses = center_detection_loss(
             y, indata,
             self.hm_weight, self.wh_weight, self.offset_weight, comm=self.comm
         )
@@ -118,6 +118,8 @@ class CenterDetectorTrain(Chain):
         reporter.report({
             'loss': loss,
             'hm_loss': hm_loss,
+            'hm_pos_loss': detail_losses['hm_pos_loss'],
+            'hm_neg_loss': detail_losses['hm_neg_loss'],
             'hm_mae': hm_mae,
             'wh_loss': wh_loss,
             'offset_loss': offset_loss

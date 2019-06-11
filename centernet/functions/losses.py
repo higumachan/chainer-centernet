@@ -4,14 +4,15 @@ import numpy as np
 
 EPS = 2e-05
 
+
 def focial_loss(pred, gt, alpha=2, beta=4, comm=None):
     pos_indices = gt >= 1
     neg_indices = gt < 1
 
     neg_weights = (1 - gt) ** beta
 
-    pos_loss = F.log(pred + EPS) * (1 - pred) ** alpha * pos_indices
-    neg_loss = F.log(1 - pred + EPS) * pred ** alpha * neg_weights * neg_indices
+    pos_loss = F.log(pred) * (1 - pred) ** alpha * pos_indices
+    neg_loss = F.log(1 - pred) * pred ** alpha * neg_weights * neg_indices
 
     num_pos = pos_indices.sum()
     pos_loss = F.sum(pos_loss)
@@ -26,7 +27,7 @@ def focial_loss(pred, gt, alpha=2, beta=4, comm=None):
     else:
         loss = loss - (pos_loss + neg_loss) / num_pos
 
-    return loss
+    return loss, pos_loss, neg_loss
 
 
 def reg_loss(output, mask, target, comm=None):
@@ -59,10 +60,14 @@ def center_detection_loss(outputs, gts, hm_weight, wh_weight, offset_weight, com
     """
 
     hm_loss, wh_loss, offset_loss = 0, 0, 0
+    hm_pos_loss, hm_neg_loss = 0, 0
     for output in outputs:
         output['hm'] = F.sigmoid(output['hm'])
 
-        hm_loss += focial_loss(output['hm'], gts['hm'], comm=comm) / len(outputs)
+        t_hm, t_pos, t_neg = focial_loss(output['hm'], gts['hm'], comm=comm)
+        hm_loss += t_hm / len(outputs)
+        hm_pos_loss += t_pos / len(outputs)
+        hm_neg_loss += t_neg / len(outputs)
 
         if wh_weight > 0.0:
             wh_loss += reg_loss(output['wh'], gts['dense_mask'], gts['dense_wh'], comm=comm) / len(outputs)
@@ -72,7 +77,10 @@ def center_detection_loss(outputs, gts, hm_weight, wh_weight, offset_weight, com
 
     loss = hm_weight * hm_loss + wh_weight * wh_loss + offset_weight * offset_loss
 
-    return loss, hm_loss, wh_loss, offset_loss
+    return loss, hm_loss, wh_loss, offset_loss, {
+        'hm_pos_loss': hm_pos_loss,
+        'hm_neg_loss': hm_neg_loss,
+    }
 
 
 if __name__ == '__main__':
