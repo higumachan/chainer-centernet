@@ -98,7 +98,7 @@ class CenterDetectionTransform:
             dense_offset[0, center_int[1], center_int[0]] = (center - center_int)[0]
             dense_offset[1, center_int[1], center_int[0]] = (center - center_int)[1]
             dense_mask[0, center_int[1], center_int[0]] = 1.0
-            dense_mask[0, center_int[1], center_int[0]] = 1.0
+            dense_mask[1, center_int[1], center_int[0]] = 1.0
 
         return {
             'image': img,
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     dataset = VOCBboxDataset()
 
     transform = CenterDetectionTransform(512, 100, 4)
-    print(dataset[0])
+    print(dataset[1])
     data = transform(dataset[0])
 
     for cls in range(100):
@@ -134,7 +134,7 @@ if __name__ == '__main__':
     transform = CenterDetectionTransform(512, 100, 4)
     dat = DataAugmentationTransform(512)
     print(dataset[0])
-    data = transform(dat(dataset[0]))
+    data = transform(dat(dataset[1]))
 
     for cls in range(100):
         if data['hm'][cls].sum() > 0:
