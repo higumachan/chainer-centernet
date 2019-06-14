@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import chainer
 import numpy as np
 from chainer import Chain, Variable, reporter
@@ -14,10 +16,11 @@ from centernet.utilities import find_peak
 
 class CenterDetector(Chain):
 
-    def __init__(self, base_network_factory: Callable[[Dict[str, int]], Chain], insize, num_classes):
+    def __init__(self, base_network_factory: Callable[[Dict[str, int]], Chain], insize, num_classes, downratio=4):
         super().__init__()
         self.num_classes = num_classes
         self.insize = insize
+        self.downratio = downratio
         with self.init_scope():
             self.base_network = base_network_factory({
                 'hm': num_classes,
@@ -44,6 +47,8 @@ class CenterDetector(Chain):
         bboxes = []
         labels = []
         scores = []
+        output['hm'] = F.sigmoid(output['hm'])
+        output['hm'].to_cpu()
         for i in range(len(imgs)):
             bbox, label, score = self._decode_output(output, i, k)
             transforms.resize_bbox(bbox, (self.insize, self.insize), sizes[i])
@@ -58,22 +63,24 @@ class CenterDetector(Chain):
         labels = []
         scores = []
         for j in range(self.num_classes):
-            output['hm'].to_cpu()
             hm = output['hm'].array[index, j]
 
             pos_indices = np.argsort(hm.flatten())[::-1][:k]
-            #print(f"----class {j}----")
+            already_visit_peak = defaultdict(lambda: False)
             for pos_index in pos_indices:
                 x = pos_index % hm.shape[1]
                 y = pos_index // hm.shape[1]
-                #print(f"hm value={hm[y, x]}")
                 peak_x, peak_y = find_peak(hm, x, y)
+                if not already_visit_peak[peak_y, peak_x]:
+                    already_visit_peak[peak_y, peak_x] = True
 
-                adjusted_x, adjusted_y, w, h = self._decode_bbox(output, peak_x, peak_y, index)
-                bboxes.append([adjusted_y, adjusted_x, y + h, x + w])
-                labels.append(j)
-                scores.append(hm[y, x])
-        return np.array(bboxes), np.array(labels), np.array(scores)
+                    adjusted_x, adjusted_y, w, h = self._decode_bbox(output, peak_x, peak_y, index)
+                    bboxes.append([adjusted_y - h / 2, adjusted_x - w / 2, adjusted_y + h / 2, adjusted_x + w / 2])
+                    labels.append(j)
+                    scores.append(hm[y, x])
+        scores = np.array(scores)
+        sorted_idx = scores.argsort()[::-1]
+        return np.array(bboxes)[sorted_idx], np.array(labels)[sorted_idx], scores[sorted_idx]
 
     def _decode_bbox(self, output, x, y, index):
         wh = output['wh']
@@ -85,7 +92,7 @@ class CenterDetector(Chain):
 
         return (
             x + offset[index, 0, y, x], y + offset[index, 1, y, x],
-            wh[index, 0, y, x], wh[index, 1, y, x]
+            wh[index, 0, y, x] * self.downratio, wh[index, 1, y, x] * self.downratio
         )
 
     def _prepare(self, img):
