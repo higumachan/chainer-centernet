@@ -16,11 +16,12 @@ from centernet.utilities import find_peak
 
 class CenterDetector(Chain):
 
-    def __init__(self, base_network_factory: Callable[[Dict[str, int]], Chain], insize, num_classes, downratio=4):
+    def __init__(self, base_network_factory: Callable[[Dict[str, int]], Chain], insize, num_classes, downratio=4, dtype=np.float32):
         super().__init__()
         self.num_classes = num_classes
         self.insize = insize
         self.downratio = downratio
+        self.dtype = dtype
         with self.init_scope():
             self.base_network = base_network_factory({
                 'hm': num_classes,
@@ -99,7 +100,7 @@ class CenterDetector(Chain):
         )
 
     def _prepare(self, img):
-        img = img.astype(np.float32)
+        img = img.astype(self.dtype)
         img = transforms.resize(img, (self.insize, self.insize))
         return img
 

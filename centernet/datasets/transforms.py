@@ -60,11 +60,12 @@ class DataAugmentationTransform:
 
 
 class CenterDetectionTransform:
-    def __init__(self, insize, num_classes, downratio) -> None:
+    def __init__(self, insize, num_classes, downratio, dtype=np.float32) -> None:
         super().__init__()
         self.num_classes = num_classes
         self.downratio = downratio
         self.size = insize
+        self.dtype = dtype
 
     def __call__(self, in_data):
         img, bboxes, labels = in_data[:3]
@@ -76,10 +77,10 @@ class CenterDetectionTransform:
         img = transforms.resize(img, (self.size, self.size))
         bboxes = transforms.resize_bbox(bboxes, (H, W), (output_h, output_w))
 
-        hm = np.zeros((self.num_classes, output_h, output_w), dtype=np.float32)
-        dense_wh = np.zeros((2, output_h, output_w), dtype=np.float32)
-        dense_offset = np.zeros((2, output_h, output_w), dtype=np.float32)
-        dense_mask = np.zeros((2, output_h, output_w), dtype=np.float32)
+        hm = np.zeros((self.num_classes, output_h, output_w), dtype=self.dtype)
+        dense_wh = np.zeros((2, output_h, output_w), dtype=self.dtype)
+        dense_offset = np.zeros((2, output_h, output_w), dtype=self.dtype)
+        dense_mask = np.zeros((2, output_h, output_w), dtype=self.dtype)
 
         for i, (bbox, label) in enumerate(zip(bboxes, labels)):
             w = bbox[3] - bbox[1]
@@ -90,7 +91,7 @@ class CenterDetectionTransform:
 
             center = np.array([
                 (bbox[3] + bbox[1]) / 2, (bbox[2] + bbox[0]) / 2
-            ], dtype=np.float32)
+            ], dtype=self.dtype)
             center_int = center.astype(np.int32)
             draw_umich_gaussian(hm[label], center_int, radius)
             dense_wh[0, center_int[1], center_int[0]] = w
