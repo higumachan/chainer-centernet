@@ -25,8 +25,8 @@ if __name__ == '__main__':
     with chainer.using_config('train', False):
         num_class = len(voc_bbox_label_names)
         detector = CenterDetector(HourglassNet, size, num_class)
-        chainer.serializers.load_npz('result/detector098.npz', detector)
-        predicted = detector.predict([image])
+        chainer.serializers.load_npz('models/hg_256_pascalvoc.npz', detector)
+        predicted = detector.predict([image], detail=True)
         thresh_idx = predicted[2][0] > 0.3
         ax = vis_bbox(
             image,
@@ -36,3 +36,16 @@ if __name__ == '__main__':
             label_names=voc_bbox_label_names,
         )
         plt.show()
+
+        output = predicted[3]
+        resized_image = cv2.resize(image.transpose((1, 2, 0)), (size, size))
+        for cls in range(num_class):
+            print(cls)
+            plt.imshow(resized_image)
+            hm = output['hm'].data[0, cls]
+            if hm.max() > 0.3:
+                hm_img = cv2.resize(hm, (size, size))
+                plt.title(voc_bbox_label_names[cls])
+                plt.imshow(hm_img, alpha=0.8, cmap=plt.cm.jet)
+                plt.colorbar()
+                plt.show()

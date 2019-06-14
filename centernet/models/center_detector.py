@@ -32,7 +32,7 @@ class CenterDetector(Chain):
         y = self.base_network(x)
         return y
 
-    def predict(self, imgs, k=100):
+    def predict(self, imgs, k=100, detail=False, output_index=-1):
         x = []
         sizes = []
         for img in imgs:
@@ -42,7 +42,7 @@ class CenterDetector(Chain):
             sizes.append((H, W))
         with chainer.using_config('train', False), chainer.function.no_backprop_mode():
             x = Variable(self.xp.stack(x))
-            output = self.forward(x)[-1]
+            output = self.forward(x)[output_index]
 
         bboxes = []
         labels = []
@@ -56,7 +56,10 @@ class CenterDetector(Chain):
             labels.append(label)
             scores.append(score)
 
-        return bboxes, labels, scores
+        if detail:
+            return bboxes, labels, scores, output
+        else:
+            return bboxes, labels, scores
 
     def _decode_output(self, output, index, k):
         bboxes = []
