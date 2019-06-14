@@ -25,8 +25,6 @@ def main():
     parser.add_argument('--mini', action="store_true")
     args = parser.parse_args()
 
-
-
     if hasattr(multiprocessing, 'set_start_method'):
         multiprocessing.set_start_method('forkserver')
         p = multiprocessing.Process()
@@ -34,6 +32,8 @@ def main():
         p.join()
 
     comm = chainermn.create_communicator('pure_nccl')
+    print(comm.size)
+
     device = comm.intra_rank
 
     num_class = len(voc_bbox_label_names)
@@ -69,8 +69,7 @@ def main():
             test, args.batchsize, repeat=False, shuffle=False)
 
     detector = CenterDetector(HourglassNet, 512, num_class)
-    train_chain = CenterDetectorTrain(detector, 1, 0.1, 1)
-
+    train_chain = CenterDetectorTrain(detector, 1, 0.1, 1, comm=comm)
 
     chainer.cuda.get_device_from_id(device).use()
     train_chain.to_gpu()
