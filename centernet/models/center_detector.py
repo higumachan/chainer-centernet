@@ -51,7 +51,7 @@ class CenterDetector(Chain):
         output['hm'].to_cpu()
         for i in range(len(imgs)):
             bbox, label, score = self._decode_output(output, i, k)
-            transforms.resize_bbox(bbox, (self.insize, self.insize), sizes[i])
+            bbox = transforms.resize_bbox(bbox, (self.insize, self.insize), sizes[i])
             bboxes.append(bbox)
             labels.append(label)
             scores.append(score)
@@ -91,7 +91,7 @@ class CenterDetector(Chain):
         offset = offset.array
 
         return (
-            x + offset[index, 0, y, x], y + offset[index, 1, y, x],
+            x * self.downratio + offset[index, 0, y, x], y * self.downratio + offset[index, 1, y, x],
             wh[index, 0, y, x] * self.downratio, wh[index, 1, y, x] * self.downratio
         )
 
