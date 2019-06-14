@@ -1,6 +1,6 @@
 # chainer-centernet
 
-This is Centernet implementation on chainer. (original https://github.com/xingyizhou/CenterNet)
+This is Centernet implementation on chainer(and chainercv). (original https://github.com/xingyizhou/CenterNet)
 
 # How to install
 
@@ -12,7 +12,12 @@ pipenv sync
 
 # demo
 
-It able to run trained Pascal VOC model (256pixel and hourglass model)
+## download
+
+please download [here](https://drive.google.com/file/d/1TGRqdgyrWwJC0PXG91GD7e6t6zw9GLLv/view?usp=sharing).  
+And put here `models/hg_256_pascalvoc.npz`.
+
+## run
 
 ```sh
 cd chainer-centernet
